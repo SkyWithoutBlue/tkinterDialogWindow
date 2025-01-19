@@ -1,48 +1,64 @@
-#MainWindow.py
 import tkinter as tk
-from tkinter import scrolledtext, filedialog
-from AboutWindow import About
+from Methods import Methods
+from Note import Note
+from TextEditWindow import TextEditWindow
+
 
 class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Блокнот")
+        self.add_button = None
+        self.frame_notes = None
+        self.__files = []
+        self.__name = "Приложение для заметок"
+
+    def start(self):
+        self.title(self.__name)
+
+        self.frame_notes = tk.Frame(self)
+        self.frame_notes.pack(padx=10, pady=10, fill='both', expand=True)
         self.geometry("800x600")
-        self.edit_text = scrolledtext.ScrolledText(width=96, height=37)
-        self._filepath = None
-        self._create_menu()
-        self.edit_text.pack()
+        # Кнопка добавления новой заметки
+        self.add_button = tk.Button(self, text="+", font=('Arial', 16), command=self.create_note_card)
+        self.add_button.pack(side='bottom', pady=5)
 
-    def _open_file(self):
-        self._filepath = filedialog.askopenfilename()
-        if self._filepath:
-            with open(self._filepath, "r") as file:
-                text = file.read()
-                self.title(f"Блокнот - {file.name}")
-                self.edit_text.delete("1.0", tk.END)
-                self.edit_text.insert("1.0", text)
+        self.refresh_notes_list()
+        self.show_note_card()
+        self.mainloop()
 
-    def _save_file_as(self):
-        self._filepath = filedialog.asksaveasfilename()
-        if self._filepath:
-            self._save_file()
+    def add_note_card(self, note: Note):
+        card = tk.Frame(self.frame_notes, bg='white', bd=1)
+        card.pack(padx=10, pady=5, fill='x')
 
-    def _save_file(self):
-        if self._filepath:
-            text = self.edit_text.get("1.0", tk.END)
-            with open(self._filepath, "w") as file:
-                file.write(text)
-        else:
-            self._save_file_as()
+        title = tk.Label(card, text=note.get_filename())
+        title.pack(side='left')
 
-    def _create_menu(self):
-        self._menu = tk.Menu(self, tearoff=0)
-        self._menu.add_command(label="Открыть файл", command=self._open_file)
-        self._menu.add_command(label="Сохранить файл как", command=self._save_file_as)
-        self._menu.add_command(label="Сохранить файл", command=self._save_file)
-        self._menu.add_command(label="О программе", command=self._open_about)
-        self.config(menu=self._menu)
+        edit_button = tk.Button(card, text="Редактировать", command=lambda: self.edit_note(note))
+        edit_button.pack(side='right')
 
-    def _open_about(self):
-        about = About(self)
-        about.grab_set()
+        delete_button = tk.Button(card, text="Удалить", command=lambda: self.delete_note(note))
+        delete_button.pack(side='right')
+    def edit_note(self,note:Note):
+        edit_note = TextEditWindow(self,note)
+        edit_note.grab_set()
+    def delete_note(self, note: Note):
+        note.delete_note()
+        self.refresh_notes_list()
+        self.show_note_card()
+
+    def refresh_notes_list(self):
+        for widget in self.frame_notes.winfo_children():
+            widget.destroy()
+        self.__files.clear()
+        for note_name in Methods.get_note_list():
+            self.add_note_to_note_list(Note(note_name))
+    def add_note_to_note_list(self,note:Note):
+        self.__files.append(note)
+    def show_note_card(self):
+        for note in self.__files:
+            self.add_note_card(note)
+
+    def create_note_card(self):
+        Note.create_note()
+        self.refresh_notes_list()
+        self.show_note_card()
