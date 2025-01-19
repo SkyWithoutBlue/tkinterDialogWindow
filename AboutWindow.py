@@ -1,4 +1,3 @@
-#AboutWindow.py
 import tkinter as tk
 
 class About(tk.Toplevel):

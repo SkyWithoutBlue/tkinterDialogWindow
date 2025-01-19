@@ -2,7 +2,6 @@ import os
 import uuid
 from tkinter import simpledialog, messagebox
 
-
 class Note:
     def __init__(self, filename):
         self.__filename = filename
@@ -16,6 +15,8 @@ class Note:
         messagebox.showinfo("Успех", "Заметка отредактирована!")
 
     def get_note_text(self):
+        if not os.path.exists(self.__filename):
+            return ""
         with open(self.__filename, 'r') as file:
             return file.read()
 
@@ -31,11 +32,4 @@ class Note:
             with open(new_filename, 'w') as file:
                 file.write("")
             messagebox.showinfo("Успех", "Заметка создана!")
-
-
-class Methods:
-
-
-    @staticmethod
-    def get_note_list():
-        return [file for file in os.listdir() if file.endswith('.note')]
+            return new_filename
